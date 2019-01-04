@@ -22,35 +22,133 @@ Game::~Game()
 void Game::initBoard(Number board[ARRAY_SIZE][ARRAY_SIZE])
 {
 
-	// for (int i = 0; i < ARRAY_SIZE; ++i)
-	// {
-	// 	for (int j = 0; j < ARRAY_SIZE; ++j)
-	// 	{
-			
-	// 	}
-	// }
+	//Row iteration
+	for (int i = 0; i < ARRAY_SIZE; ++i)
+	{
+		//Column iteration
+		for (int j = 0; j < ARRAY_SIZE; ++j)
+		{
+
+			//Set pointers on edge of board to NULL
+
+
+			//Top of board
+			if(i==0) 
+			{
+				board[i][j].up = NULL;
+			}
+
+			//Bottom of board
+			if(i==ARRAY_SIZE-1) 
+			{
+				board[i][j].down = NULL;
+			}
+
+			//Left of board
+			if(j==0) 
+			{
+				board[i][j].left = NULL;
+			}
+
+			//Right of board
+			if(j==ARRAY_SIZE-1) 
+			{
+				board[i][j].right = NULL;
+			}
+
+
+
+			//Set directional pointers for everything else
+			//Up
+			if(i!=0) 
+			{
+				board[i][j].up = &(board[i-1][j]);
+			}
+
+			//Down
+			if(i!=ARRAY_SIZE-1) 
+			{
+				board[i][j].down = &(board[i+1][j]);
+			}
+
+			//Left
+			if(j!=0) 
+			{
+				board[i][j].left = &(board[i][j-1]);
+			}
+
+			//Right
+			if(j!=ARRAY_SIZE-1) 
+			{
+				board[i][j].right = &(board[i][j+1]);
+
+				//Set next pointer for easier iteration
+				board[i][j].next = &(board[i][j+1]);
+
+			}
+
+			else if(i!=ARRAY_SIZE-1)
+			{
+				board[i][j].next = &(board[i+1][0]);
+			}
+
+			else
+
+			{
+				board[i][j].next = NULL;
+			}
+
+		}
+	}
 
 	//Initialize 2 squares to 2's
-	
-	
+
+
+	bool debug = true;
+
+	if(debug)
+	{
+		board[0][1].setdigit(2);
+		board[1][1].setdigit(2);
+	}
+
+	else
+	{
 	srand(time(0));
 
 	board[rand()%4][rand()%4].setdigit(2);
 	board[rand()%4][rand()%4].setdigit(2);
+	}
 }
 
 void Game::printBoard(Number board[ARRAY_SIZE][ARRAY_SIZE])
 {
-	for (int i = 0; i < ARRAY_SIZE; ++i)
-	{
-		for (int j = 0; j < ARRAY_SIZE; ++j)
-		{
+	Number *temp = &(board[0][0]);
 
-			cout << board[i][j].getdigit() << " ";
+	while ((temp->next != NULL))
+	{
+
+		cout << temp->getdigit() << " ";
+
+		if(temp->right == NULL)
+		{
+			cout << endl;
 		}
 
-		cout << endl;
+
+		if(temp->next != NULL) 
+		{
+			temp = temp->next;
+		}
+		if(temp->next == NULL)
+		{
+			cout << temp->getdigit() << endl;
+		}
 	}
+
+
+
+
 }
 
 
@@ -61,8 +159,8 @@ void Game::printShiftMenu()
 	cout << "\nEnter shift direction:\n"
 		<< "w: up \n"
 		<< "a: left \n"
-		<< "s: right \n"
-		<< "d: down \n"
+		<< "s: down \n"
+		<< "d: right \n"
 
 		<< endl << ">>";
 }
@@ -86,41 +184,74 @@ char Game::getShiftDirection()
 bool Game::hasAdjacent(Number board[ARRAY_SIZE][ARRAY_SIZE], char shiftDir)
 {
 
-	//Shift horiztonal
+	//Shift horizontal
 	if ((shiftDir == 'a') || (shiftDir == 'd'))
 	{
-		for (int i = 0; i < ARRAY_SIZE; ++i)
+		
+		for (int row_idx = 0; row_idx < ARRAY_SIZE; ++row_idx)
 		{
-			for (int j = 0; j < ARRAY_SIZE-1; ++j)
+
+			Number *temp = &(board[row_idx][0]);
+			int j = 0;
+			while(temp->right!=NULL)
 			{
-				//If cell is 0, ignore it
-	 			if(board[i][j].isEmpty())
-	 				continue;
+				++j; 
 
-				if(board[i][j].getdigit() == board[i][j+1].getdigit())	
+				if(temp->isEmpty())
+				{
+					temp = temp->right;
+					continue;
+				}
+
+				if((temp->getdigit() == temp->right->getdigit()))
+				{
 					return true;
-
+				}
+				temp = temp->right;
 			}
+
+			
 		}
+
+
+		
+
 	}
 
 	//Shift vertical 
-	if((shiftDir == 's') || (shiftDir == 'w'))
+	if ((shiftDir == 'w') || (shiftDir == 's'))
+	{
+		
+		for (int col_idx = 0; col_idx < ARRAY_SIZE; ++col_idx)
 		{
-				for (int j = 0; j < ARRAY_SIZE; ++j)
+
+			Number *temp = &(board[0][col_idx]);
+			
+			while(temp->down!=NULL)
+			{
+				
+
+				if(temp->isEmpty())
 				{
-					for (int i = 0; i < ARRAY_SIZE-1; ++i)
-					{
-						//If cell is 0, ignore it
-			 			if(board[i][j].isEmpty())
-			 				continue;
-		
-		
-						if(board[i][j].getdigit() == board[i+1][j].getdigit())	
-							return true;
-					}
+					temp = temp->down;
+					continue;
 				}
+
+				if((temp->getdigit() == temp->down->getdigit()))
+				{
+					return true;
+				}
+				temp = temp->down;
+			}
+
+			
 		}
+
+
+		
+
+	}
+
 	return false;
 }
 
@@ -181,7 +312,7 @@ void Game::shiftBoard(Number board[ARRAY_SIZE][ARRAY_SIZE], char shiftDir)
 	    	}
 	    }
 
-	    if (asdf>5) break;
+	    if (++asdf>5) break;
 	}
 
 
